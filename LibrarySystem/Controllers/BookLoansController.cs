@@ -76,7 +76,7 @@ namespace LibrarySystem.Controllers
                 return Challenge();
             }
 
-            ViewData["BookId"] = new SelectList(_context.Book, "Id", "Id");
+            ViewData["BookId"] = new SelectList(_context.Book, "Id", "Title");
 
             return View();
         }
@@ -86,7 +86,7 @@ namespace LibrarySystem.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,BookId,FromDate,ToDate")] BookLoan bookLoan)
+        public async Task<IActionResult> Create([Bind("Id,BookId")] BookLoan bookLoan)
         {
             if (!User.Identity.IsAuthenticated)
             {
@@ -98,12 +98,15 @@ namespace LibrarySystem.Controllers
             if (ModelState.IsValid)
             {
                 bookLoan.UserId = userId;
+                bookLoan.FromDate = DateTime.Now;
+                bookLoan.ToDate = DateTime.Now.AddDays(31);
+
                 _context.Add(bookLoan);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
 
-            ViewData["BookId"] = new SelectList(_context.Book, "Id", "Id", bookLoan.BookId);
+            ViewData["BookId"] = new SelectList(_context.Book, "Id", "Title", bookLoan.BookId);
 
             return View(bookLoan);
         }
