@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using LibrarySystem.Data;
 using LibrarySystem.Models;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 
 namespace LibrarySystem.Controllers
 {
@@ -21,13 +22,9 @@ namespace LibrarySystem.Controllers
         }
 
         // GET: BookLoans
+        [Authorize]
         public async Task<IActionResult> Index()
         {
-            if (!User.Identity.IsAuthenticated)
-            {
-                return Challenge();
-            }
-
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             var applicationDbContext = _context.BookLoan
@@ -40,13 +37,9 @@ namespace LibrarySystem.Controllers
         }
 
         // GET: BookLoans/Details/5
+        [Authorize]
         public async Task<IActionResult> Details(int? id)
         {
-            if (!User.Identity.IsAuthenticated)
-            {
-                return Challenge();
-            }
-
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             if (id == null)
@@ -69,13 +62,9 @@ namespace LibrarySystem.Controllers
         }
 
         // GET: BookLoans/Create
+        [Authorize]
         public IActionResult Create()
         {
-            if (!User.Identity.IsAuthenticated)
-            {
-                return Challenge();
-            }
-
             ViewData["BookId"] = new SelectList(_context.Book, "Id", "Title");
 
             return View();
@@ -86,13 +75,9 @@ namespace LibrarySystem.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize]
         public async Task<IActionResult> Create([Bind("Id,BookId")] BookLoan bookLoan)
         {
-            if (!User.Identity.IsAuthenticated)
-            {
-                return Challenge();
-            }
-
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             if (ModelState.IsValid)
@@ -112,13 +97,9 @@ namespace LibrarySystem.Controllers
         }
 
         // GET: BookLoans/Delete/5
+        [Authorize]
         public async Task<IActionResult> Delete(int? id)
         {
-            if (!User.Identity.IsAuthenticated)
-            {
-                return Challenge();
-            }
-
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             if (id == null)
@@ -143,13 +124,9 @@ namespace LibrarySystem.Controllers
         // POST: BookLoans/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            if (!User.Identity.IsAuthenticated)
-            {
-                return Challenge();
-            }
-
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             var bookLoan = await _context.BookLoan
