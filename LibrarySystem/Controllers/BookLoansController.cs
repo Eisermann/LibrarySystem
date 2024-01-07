@@ -8,8 +8,6 @@ using Microsoft.EntityFrameworkCore;
 using LibrarySystem.Data;
 using LibrarySystem.Models;
 using System.Security.Claims;
-using NuGet.Protocol.Plugins;
-using System.Security.Principal;
 
 namespace LibrarySystem.Controllers
 {
@@ -33,7 +31,10 @@ namespace LibrarySystem.Controllers
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             var applicationDbContext = _context.BookLoan
-                .Include(b => b.Book);
+                .Include(b => b.Book)
+                .Include(b => b.User)
+                .Where(b => b.UserId == userId)
+                ;
 
             return View(await applicationDbContext.ToListAsync());
         }
@@ -55,6 +56,7 @@ namespace LibrarySystem.Controllers
 
             var bookLoan = await _context.BookLoan
                 .Include(b => b.Book)
+                .Include(b => b.User)
                 .Where(b => b.UserId == userId)
                 .FirstOrDefaultAsync(m => m.Id == id);
 
@@ -74,10 +76,8 @@ namespace LibrarySystem.Controllers
                 return Challenge();
             }
 
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            ViewData["UserId"] = userId;
             ViewData["BookId"] = new SelectList(_context.Book, "Id", "Id");
+
             return View();
         }
 
@@ -97,89 +97,9 @@ namespace LibrarySystem.Controllers
 
             if (ModelState.IsValid)
             {
+                bookLoan.UserId = userId;
                 _context.Add(bookLoan);
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-
-            ViewData["BookId"] = new SelectList(_context.Book, "Id", "Id", bookLoan.BookId);
-
-            return View(bookLoan);
-        }
-
-        // GET: BookLoans/Edit/5
-        public async Task<IActionResult> Edit(int? id)
-        {
-            if (!User.Identity.IsAuthenticated)
-            {
-                return Challenge();
-            }
-
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-
-            var bookLoan = await _context.BookLoan
-                .Include(b => b.Book)
-                .Where(b => b.UserId == userId)
-                .FirstOrDefaultAsync(m => m.Id == id);
-
-            if (bookLoan == null)
-            {
-                return NotFound();
-            }
-
-            ViewData["BookId"] = new SelectList(_context.Book, "Id", "Id", bookLoan.BookId);
-
-            return View(bookLoan);
-        }
-
-        // POST: BookLoans/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,BookId,FromDate,ToDate")] BookLoan bookLoan)
-        {
-            if (!User.Identity.IsAuthenticated)
-            {
-                return Challenge();
-            }
-
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            if (id != bookLoan.Id)
-            {
-                return NotFound();
-            }
-
-            if (bookLoan.UserId !=  userId)
-            {
-                return NotFound();
-            }
-
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(bookLoan);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!BookLoanExists(bookLoan.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
                 return RedirectToAction(nameof(Index));
             }
 
@@ -205,8 +125,10 @@ namespace LibrarySystem.Controllers
 
             var bookLoan = await _context.BookLoan
                 .Include(b => b.Book)
+                .Include(b => b.User)
                 .Where(b => b.UserId == userId)
                 .FirstOrDefaultAsync(m => m.Id == id);
+
             if (bookLoan == null)
             {
                 return NotFound();
